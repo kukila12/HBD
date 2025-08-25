@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Selamat Ulang Tahun!</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --pink:#ff65a3;
+    --pink2:#ff7eb9;
+    --blue:#7afcff;
+    --yellow:#fff740;
+  }
+  body{
+    margin:0;
+    font-family:'Poppins', sans-serif;
+    color:#fff;
+    text-align:center;
+    min-height:100vh;
+    background: linear-gradient(135deg, var(--pink2), var(--pink), var(--blue));
+    overflow:hidden;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+  }
+  h1{
+    font-size: clamp(32px, 6vw, 56px);
+    margin-bottom: 10px;
+    font-weight:800;
+    animation: bounce 1.6s infinite;
+  }
+  @keyframes bounce{
+    0%,100%{ transform: translateY(0) }
+    50%{ transform: translateY(-12px) }
+  }
+  .card{
+    width:min(800px, 90%);
+    background: rgba(255,255,255,.08);
+    border-radius:20px;
+    padding:20px;
+    box-shadow: 0 10px 50px rgba(0,0,0,.35);
+    backdrop-filter: blur(8px);
+  }
+  .photo-container{
+    margin: 10px auto 14px;
+    width:min(280px, 62vw);
+    aspect-ratio:1/1;
+    border-radius:50%;
+    overflow:hidden;
+    border:5px solid rgba(255,255,255,.95);
+    box-shadow: 0 0 40px rgba(255,255,255,.6);
+  }
+  .photo-container img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+  }
+  .ucapan{
+    margin-top:15px;
+    font-size:18px;
+    line-height:1.6;
+    color:#fff;
+    text-shadow: 0 2px 6px rgba(0,0,0,0.5);
+  }
+  .controls{
+    margin-top:20px;
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+    justify-content:center;
+  }
+  button, a.whatsapp-btn{
+    background:#fff;
+    color:var(--pink);
+    border:0;
+    padding:12px 20px;
+    font-size:16px;
+    border-radius:999px;
+    cursor:pointer;
+    text-decoration:none;
+    font-weight:600;
+    display:inline-block;
+    box-shadow: 0 6px 18px rgba(0,0,0,.25);
+    transition: transform .06s ease;
+  }
+  button:active, a.whatsapp-btn:active{ transform: translateY(1px) }
+  a.whatsapp-btn{
+    color:#25D366;
+  }
+  canvas#confetti{
+    position:fixed; inset:0; pointer-events:none; z-index:9999;
+  }
+</style>
+</head>
+<body>
+  <h1>🎉 Selamat Ulang Tahun! 🎂</h1>
+
+  <main class="card">
+    <div class="photo-container">
+      <img src="assets/foto-placeholder.jpg" alt="Foto Ulang Tahun">
+    </div>
+
+    <div class="ucapan">
+      <p>
+        Hari ini adalah hari spesial untukmu! 🎈<br>
+        Semoga panjang umur, sehat selalu, dan semua cita-citamu tercapai. 🎁<br>
+        Nikmati setiap momen indah dalam hidupmu! 🥳
+      </p>
+    </div>
+
+    <div class="controls">
+      <button id="btnMusic">Play 🎵</button>
+      <button id="btnConfetti">Lepas Confetti 🎊</button>
+      <a href="https://wa.me/62xxxxxxxx?text=Terima%20kasih%20atas%20ucapannya%20🥳" target="_blank" class="whatsapp-btn">Balas di WhatsApp 💬</a>
+    </div>
+  </main>
+
+  <audio id="bgMusic" src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"></audio>
+  <canvas id="confetti"></canvas>
+
+<script>
+const bg = document.getElementById('bgMusic');
+const btnMusic = document.getElementById('btnMusic');
+let playing = false;
+btnMusic.addEventListener('click', async () => {
+  if(!playing){ await bg.play(); playing = true; btnMusic.textContent = 'Jeda Musik ⏸️'; }
+  else { bg.pause(); playing = false; btnMusic.textContent = 'Putar Musik 🎵'; }
+});
+
+const cvs = document.getElementById('confetti');
+const ctx = cvs.getContext('2d');
+function sizeCanvas(){ cvs.width = window.innerWidth; cvs.height = window.innerHeight; }
+sizeCanvas();
+window.addEventListener('resize', sizeCanvas);
+
+const COLORS = ['#ff7eb9','#ff65a3','#7afcff','#feff9c','#fff740','#9aff6b'];
+function rand(n){ return Math.random()*n; }
+function createPiece(){
+  return {
+    x: rand(cvs.width),
+    y: -10,
+    w: 8 + rand(10),
+    h: 12 + rand(14),
+    c: COLORS[Math.floor(rand(COLORS.length))],
+    s: 2 + rand(5),
+    r: rand(Math.PI*2),
+    vr: (rand(0.2)-0.1)
+  };
+}
+let pieces = [];
+function draw(){
+  ctx.clearRect(0,0,cvs.width,cvs.height);
+  for(let p of pieces){
+    p.y += p.s;
+    p.r += p.vr;
+    ctx.save();
+    ctx.translate(p.x, p.y);
+    ctx.rotate(p.r);
+    ctx.fillStyle = p.c;
+    ctx.fillRect(-p.w/2, -p.h/2, p.w, p.h);
+    ctx.restore();
+  }
+  pieces = pieces.filter(p => p.y < cvs.height + 20);
+  if(pieces.length > 0) requestAnimationFrame(draw);
+}
+document.getElementById('btnConfetti').addEventListener('click', () => {
+  for(let i=0;i<150;i++) pieces.push(createPiece());
+  requestAnimationFrame(draw);
+});
+</script>
+</body>
+</html>
